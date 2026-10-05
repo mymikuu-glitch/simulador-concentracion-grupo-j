@@ -47,26 +47,6 @@ if not indicadores:
 if st.button("Ejecutar simulación"):
     st.session_state["S"]=np.random.dirichlet(np.ones(N), size=iteraciones)
 
-if "S" in st.session_state and indicadores and caso is not None:
-    S=st.session_state["S"]
-    calculos={
-      "Ratio de concentración (CRk)": lambda T:cr_k(T, k),
-      "Índice de IHH":lambda T:ihh(T),
-      "Índice de Dominancia":lambda T:dominancia(T), 
-      "Índice de Entropía":lambda T:entropia(T),
-}
-    for nombre in indicadores:
-        valores=calculos[nombre](S)
-        valor_caso=calculos[nombre](caso.reshape(1,-1))[0]
-        percentil=(valores<valor_caso).mean()*100
-
-        fig,ax=plt.subplots()
-        ax.hist(valores,bins=30)
-        ax.set_title(nombre)
-        ax.set_xlabel("Valor del indicador")
-        ax.set_ylabel("Frecuencia")
-        st.pyplot(fig)
-        st.write(f"El caso particular vale {valor_caso:.3f} y está en el percentil {percentil:.1f}.")
 
 st.subheader("Caso particular")
 modo=st.radio("¿Cómo quieres definir este caso?",
@@ -98,6 +78,27 @@ elif modo=="Ingresar cuotas a mano":
        st.error(f"Las cuotas suman {caso.sum()*100:.2f}%, deben sumar 100%.")
        caso=None
 
+if "S" in st.session_state and indicadores and caso is not None:
+    S=st.session_state["S"]
+    calculos={
+      "Ratio de concentración (CRk)": lambda T:cr_k(T, k),
+      "Índice de IHH":lambda T:ihh(T),
+      "Índice de Dominancia":lambda T:dominancia(T), 
+      "Índice de Entropía":lambda T:entropia(T),
+}
+    for nombre in indicadores:
+        valores=calculos[nombre](S)
+        valor_caso=calculos[nombre](caso.reshape(1,-1))[0]
+        percentil=(valores<valor_caso).mean()*100
+
+        fig,ax=plt.subplots()
+        ax.hist(valores,bins=30)
+        ax.set_title(nombre)
+        ax.set_xlabel("Valor del indicador")
+        ax.set_ylabel("Frecuencia")
+        st.pyplot(fig)
+        st.write(f"El caso particular vale {valor_caso:.3f} y está en el percentil {percentil:.1f}.")
+
 st.subheader("Evaluador")
 if caso is not None:
     ihh_caso = ihh(caso.reshape(1,-1))[0]
@@ -110,3 +111,4 @@ if caso is not None:
         else:
             st.error(f"Incorrecto. La respuesta correcta es: {correcta}.")
         st.write(f"IHH={ihh_caso:.0f}. Menos de 1.500 es baja, de 1.500 a 2.500 moderada y más de 2.500 alta.")
+
